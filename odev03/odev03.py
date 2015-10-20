@@ -2,31 +2,41 @@ import threading
 import random
 import string as str
 n=5
+sentence = "Eve gel. Okula git. Son."
 def splitter(words):
 
     mylist = [words[i:i+n] for i in range(0, len(words), n)]
-    mystring = ''.join(mylist)
-    mystring=mystring.upper()
-
+    #mystring = ''.join(mylist)
+    #mystring=mystring.upper()
     newList = []
    # while mylist:
     #    newList.append(mylist.pop(random.randrange(0, len(mylist))))
-    print(mystring)
-    return mystring
-#def cipher(mystring):
+    print(mylist[1])
+    return mylist
+def kaydir(l,n):
+    return l[-n:] + l[:-n]
+
+def cipherMethod(mylist,kaydMiktar):
+    alfabe="abcdefghijklmnopqrstuvwxyz"
+    kaydAlfabe=kaydir(alfabe,kaydMiktar)
 
 
-
-
+class Cipher:
+    def ___init___(self):
+        self.parcalar=splitter(sentence)
+    def run(self):
+        global queue
+        while splitter(sentence):
+            queue.put(cipherMethod(splitter(sentence)))
 
 def main():
-    sentence = "Eve gel. Okula git. Son."
+
     num_threads = n
     threads = []
     splitter(sentence)
     print("Starting...\n")
     """for i in range(num_threads):
-        t = threading.Thread(target=cipher, args=(sentence,))
+        t = threading.Thread(target=splitter, args=(sentence,))
         t.start()
         threads.append(t)
 """
