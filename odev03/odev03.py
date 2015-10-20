@@ -1,34 +1,37 @@
-__author__ = 'cemcelebi'
-
-
 import threading
-import time
+import random
+import string as str
+n=5
+def splitter(words):
 
-exitFlag = 0
-class myThread (threading.Thread):
-    def __init__(self, threadID, name, counter):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.counter = counter
-    def run(self):
-        print ("Starting " + self.name)
-        print_time(self.name, self.counter, 10)
-        print ("Exiting " + self.name)
+    mylist = [words[i:i+n] for i in range(0, len(words), n)]
+    mystring = ''.join(mylist)
+    mystring=mystring.upper()
 
-def print_time(threadName, delay, counter):
-    while counter:
-        if exitFlag:
-            thread.exit()
-        time.sleep(delay)
-        print ("%s: %s" % (threadName, time.ctime(time.time())))
-        counter -= 1
-        if counter==0:
-            exitFlag=1
-# Create new threads
-thread1 = myThread(1, "Thread-1", 1)
-thread2 = myThread(2, "Thread-2", 2)
-# Start new Threads
-thread1.start()
-thread2.start()
-print ("Exiting Main Thread")
+    newList = []
+   # while mylist:
+    #    newList.append(mylist.pop(random.randrange(0, len(mylist))))
+    print(mystring)
+    return mystring
+#def cipher(mystring):
+
+
+
+
+
+def main():
+    sentence = "Eve gel. Okula git. Son."
+    num_threads = n
+    threads = []
+    splitter(sentence)
+    print("Starting...\n")
+    """for i in range(num_threads):
+        t = threading.Thread(target=cipher, args=(sentence,))
+        t.start()
+        threads.append(t)
+"""
+    #print("Thread count: {}".format(threading.active_count()))
+    print("\nExiting")
+
+if __name__ == "__main__":
+    main()
