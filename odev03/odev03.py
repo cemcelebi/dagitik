@@ -1,47 +1,47 @@
+__author__ = 'cemcelebi'
+from itertools import izip
 import threading
-import random
-import string as str
-n=5
-sentence = "Eve gel. Okula git. Son."
-def splitter(words):
 
-    mylist = [words[i:i+n] for i in range(0, len(words), n)]
-    #mystring = ''.join(mylist)
-    #mystring=mystring.upper()
-    newList = []
-   # while mylist:
-    #    newList.append(mylist.pop(random.randrange(0, len(mylist))))
-    print(mylist[1])
-    return mylist
+i2=0
+alfabe="abcdefghijklmnopqrstuvwxyz"
+key={}
+text="Okula git. Eve gel. Son."
+
+
+exitFlag = 0
+class myThread (threading.Thread):
+    def __init__(self, threadID, name, counter):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.counter = counter
+        
+
+
 def kaydir(l,n):
-    return l[-n:] + l[:-n]
+        return l[-n:] + l[:-n]
 
-def cipherMethod(mylist,kaydMiktar):
-    alfabe="abcdefghijklmnopqrstuvwxyz"
-    kaydAlfabe=kaydir(alfabe,kaydMiktar)
+def anahtarUretici(n):
+        key={}
+        key=kaydir(alfabe,n)
+        med = iter(key)
+        retval=dict(izip(alfabe,key))
+        return retval
+def bolucu(text,n):
+    mylist = [text[i:i+n] for i in range(0, len(text), n)]
+    return mylist
+
+l=5
+myfile = open("metin.txt","r")
+control = True
+altmetin=[]
+#control dogru oldukca 5byte 5byte okuyup subtexts'in append'ini
+# kullanarak sona ekleme yap.
+while control:
+	chunk = myfile.read(l)
+	if chunk=='':
+		control=False
+	else:
+		altmetin.append(chunk.lower())
 
 
-class Cipher:
-    def ___init___(self):
-        self.parcalar=splitter(sentence)
-    def run(self):
-        global queue
-        while splitter(sentence):
-            queue.put(cipherMethod(splitter(sentence)))
-
-def main():
-
-    num_threads = n
-    threads = []
-    splitter(sentence)
-    print("Starting...\n")
-    """for i in range(num_threads):
-        t = threading.Thread(target=splitter, args=(sentence,))
-        t.start()
-        threads.append(t)
-"""
-    #print("Thread count: {}".format(threading.active_count()))
-    print("\nExiting")
-
-if __name__ == "__main__":
-    main()
