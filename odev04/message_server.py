@@ -15,18 +15,18 @@ class myThread (threading.Thread):
     def run(self):
         print "Starting Thread-" + str(self.threadCounter)
         #c.send("Peki from:" + str(self.clientAddr))
-        bool=False
-        while bool!=True:
+        myControl=False
+        while myControl!=True:
             data = c.recv(1024)
             if data=="exiting client":
-                bool=True#cikis_yap
+                myControl=True#cikis_yap
                 print("client cikmak istedi, kendi bilir..")
             else:
                 c.send("Peki from:" + str(self.clientAddr))
                 #c.recv(1024)
-                for key in threads:
+                #for key in threads:
                     #if threads==:
-                    c.send("Merhaba, su an saat "+time.strftime("%H:%M:%S"))
+                c.send("Merhaba, su an saat "+time.strftime("%H:%M:%S"))
                 time.sleep(random.randrange(2,3))
         print "Ending Thread-" + str(self.threadCounter)
 
@@ -36,8 +36,7 @@ s = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
 port = 5432               # Reserve a port for your service.
 s.bind((host, port))
-threads={} #dict of threads, T1:Actif;T2:Non-Actif;T3:Actif;T4:Actif vs..
-#activeThreads=[] #list of active threads
+threads={} #dict of active threads,
 
 print(host)
 # Bind to the port
