@@ -122,29 +122,31 @@ def main():
     global queueLock
     global fihrist
     logQueue = Queue.Queue()
-    port=59999
+    port=59998
     threadCounter=0
     threads=[]
     s=socket.socket()
-    host=socket.gethostname()
+    host="127.0.0.1"
     s.bind((host,port))
-    s.listen(5)
+    
     queueLock = threading.Lock()
     fihrist = {}
     #while True'ya eklenecek
     threadQueue = Queue.Queue()
-    print("connection bekleniyor")
-    c,addr=s.accept()
-    print("connection geldi")
-    thread=WriteThread("WriterThread",c,addr,threadQueue,logQueue)
-    thread.daemon=True
-    thread.start()
-    threads.append(thread)
-    threadCounter+=1
-    thread=ReadThread("Reader Thread",c,addr,threadQueue,logQueue)
-    thread.daemon=True
-    thread.start()
-    threads.append(thread)
-    threadCounter+=1
+    s.listen(5)
+    while True:
+        print("connection bekleniyor")
+        c,addr=s.accept()
+        print("connection geldi")
+        thread=WriteThread("WriterThread",c,addr,threadQueue,logQueue)
+        thread.daemon=True
+        thread.start()
+        threads.append(thread)
+        threadCounter+=1
+        thread=ReadThread("Reader Thread",c,addr,threadQueue,logQueue)
+        thread.daemon=True
+        thread.start()
+        threads.append(thread)
+        threadCounter+=1
 if __name__ == '__main__':
     main()
