@@ -10,12 +10,14 @@ class WriteThread (threading.Thread):
         self.address = address
         self.lQueue = logQueue
         self.tQueue = threadQueue
-def run(self):
-    #logQueue
-    exitFlag=False
-    while not exitFlag:
-        #olmayan seyi gondermemizi engellemis olacak:
-        if self.threadQueue.qsize()>0:
+    def run(self):
+        #logQueue
+        exitFlag=False
+        while not exitFlag:
+            print("!!!!!helloWriteThread!!!!! \n")
+            #olmayan seyi gondermemizi engellemis olacak:
+            #qget() zaten bloking oldugundan if tQ>0 a gerek yok...
+             #if self.threadQueue.qsize()>0:
             queue_message = self.tQueue.get()
             # gonderilen ozel mesajsa
             if queue_message[2]=="MSG":
@@ -27,13 +29,12 @@ def run(self):
             elif queue_message[2]=="QUI":
                 break
             else:
-                message_to_send = "SYS "+queue_message[3]
+                message_to_send = "SYS "+queue_message[2]
+            print("message2send: "+message_to_send)
             self.cSocket.sendall(message_to_send)
-        """
-                mesaj yollama
-        """
+
 class ReadThread (threading.Thread):
-    def __init__(self, name, cSocket, address, logQueue,threadQueue):
+    def __init__(self, name, cSocket, address, threadQueue,logQueue):
         threading.Thread.__init__(self)
         self.name = name
         self.cSocket = cSocket
@@ -48,6 +49,9 @@ class ReadThread (threading.Thread):
         # henuz login olmadiysa
         if not self.nickname and not data[0:3] == "USR":
             self.cSocket.send("ERL")
+        if data[0:3]== "ext":
+            self.cSocket.close()
+            return 0
         if data[0:3] == "USR":
             nickname=data[4:]
             #bundan sonra ikiye dallanacak,
@@ -64,21 +68,26 @@ class ReadThread (threading.Thread):
                 self.cSocket.close()
                 return 1
                 print("USR:return -1")
+            print("end of USR")
         elif data[0:3] == "QUI":
             self.cSocket.send("BYE"+self.nickname)
             #fihristten sil
             del self.fihrist[self.nickname]
             self.cSocket.close()
             return 1
+            print("end of QUI")
         elif data[0:3] == "LSQ":
             self.cSocket.send("LSA")
             for key, value in self.fihrist.iteritems():
                 self.cSocket.send(key)
                 print(":")
             return 0
+            print("end of LSQ")
         elif data[0:3] == "TIC":
             self.cSocket.send("TOC")
+            print("end of TIC")
             return 0
+
         elif data[0:3] == "SAY":
              sayMessage="SAYING: SOK"
              #buradan direkt send'lemiyoruz, threadQueue'ya ekliyoruz:
@@ -89,6 +98,7 @@ class ReadThread (threading.Thread):
              for key in self.fihrist.keys():
                 self.fihrist[key].put((None,self.nickname,sayMessage))
              return 0
+             print("end of SAY")
         elif data[0:3] == "MSG":
             rawData = data[4:].split(':')
             nicknameRcver=rawData[0]
@@ -101,6 +111,7 @@ class ReadThread (threading.Thread):
                 self.fihrist[nicknameRcver].put(yollanacakTuple)
                 self.cSocket.send("MOK"+nicknameRcver)
                 return 0
+            print("end of MSG")
         else:
             #ornek parser kodunda ERR case'inin en basta olmasi sacma
             # cunku ERR case'i zaten hicbiri olmazsa durumu.
@@ -108,15 +119,17 @@ class ReadThread (threading.Thread):
             print("ERR durumu")
             self.cSocket.send("ERR")
             return 0
+        print("parser bitti")
     def run(self):
         while True:
             print("data bekliyorum")
             data=self.cSocket.recv(1024)
-            print("data is"+data)
+            print("data is "+data)
             retVal=self.parser(data)
             if retVal:
+                print("retval'in icindeyim \n")
                 return
-            return 0
+
 def main():
     global logLock
     global queueLock
@@ -128,25 +141,27 @@ def main():
     s=socket.socket()
     host="127.0.0.1"
     s.bind((host,port))
-    
+
     queueLock = threading.Lock()
     fihrist = {}
     #while True'ya eklenecek
-    threadQueue = Queue.Queue()
+
     s.listen(5)
     while True:
-        print("connection bekleniyor")
+        print("connection bekleniyor \n")
         c,addr=s.accept()
-        print("connection geldi")
-        thread=WriteThread("WriterThread",c,addr,threadQueue,logQueue)
-        thread.daemon=True
-        thread.start()
-        threads.append(thread)
-        threadCounter+=1
-        thread=ReadThread("Reader Thread",c,addr,threadQueue,logQueue)
-        thread.daemon=True
-        thread.start()
-        threads.append(thread)
-        threadCounter+=1
+        print("connection geldi \n")
+        threadQueue = Queue.Queue()
+        threadWrite=WriteThread("WriterThread",c,addr,threadQueue,logQueue)
+        threadWrite.daemon=True
+
+        #threads.append(thread)
+        #threadCounter+=1
+        threadRead=ReadThread("Reader Thread",c,addr,threadQueue,logQueue)
+        threadRead.daemon=True
+        threadRead.start()
+        threadWrite.start()
+        #threads.append(thread)
+        #threadCounter+=1
 if __name__ == '__main__':
     main()
