@@ -119,7 +119,7 @@ class ReadThread (threading.Thread):
             msgMessage=rawData[1]
             #once nickRcver'in olmadigi durum, sonra oldugu:
             if nicknameRcver not in self.fihrist.keys():
-                self.cSocket.send("MNO"+nicknameRcver)
+                self.cSocket.send("MNO! No USER named: "+nicknameRcver)
             else:
                 yollanacakTuple=(nicknameRcver,self.nickname,msgMessage)
                 self.fihrist[nicknameRcver].put(yollanacakTuple)
@@ -149,7 +149,7 @@ def main():
     global queueLock
     global fihrist
     logQueue = Queue.Queue()
-    port=59997
+    port=59998
     threadCounter=0
     threads=[]
     s=socket.socket()
