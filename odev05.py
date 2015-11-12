@@ -16,7 +16,7 @@ class WriteThread (threading.Thread):
         while not exitFlag:
             print("!!!!!helloWriteThread!!!!! \n")
             #olmayan seyi gondermemizi engellemis olacak:
-            #qget() zaten bloking oldugundan if tQ>0 a gerek yok...
+            #qget() zaten blocking oldugundan if "tQueue.size()>0" a gerek yok...
              #if self.threadQueue.qsize()>0:
             queue_message = self.tQueue.get()
             # gonderilen ozel mesajsa
@@ -77,28 +77,42 @@ class ReadThread (threading.Thread):
             return 1
             print("end of QUI")
         elif data[0:3] == "LSQ":
-            self.cSocket.send("LSA")
-            for key, value in self.fihrist.iteritems():
-                self.cSocket.send(key)
-                print(":")
-            return 0
-            print("end of LSQ")
+            if not self.fihrist.keys():
+                sayMessage="SAYING: REGISTER FIRST"
+                self.threadQueue.put((None,None,sayMessage))
+            else:
+                self.cSocket.send("LSA")
+                for key, value in self.fihrist.iteritems():
+                    self.cSocket.send(key)
+                    print(":")
+                return 0
+                print("end of LSQ")
         elif data[0:3] == "TIC":
-            self.cSocket.send("TOC")
-            print("end of TIC")
-            return 0
+            if not self.fihrist.keys():
+                sayMessage="SAYING: REGISTER FIRST"
+                self.threadQueue.put((None,None,sayMessage))
+            else:
+                self.cSocket.send("TOC")
+                print("end of TIC")
+                return 0
 
         elif data[0:3] == "SAY":
-             sayMessage="SAYING: SOK"
-             #buradan direkt send'lemiyoruz, threadQueue'ya ekliyoruz:
-             self.threadQueue.put((None,None,sayMessage))
-             sayMessage=data[4:]
-             print sayMessage
-             #threadQueue'nun put methodu'yla tum fihrist'i dolasip hepsine sayMessag'i iletmek:
-             for key in self.fihrist.keys():
-                self.fihrist[key].put((None,self.nickname,sayMessage))
-             return 0
-             print("end of SAY")
+             if not self.fihrist.keys():
+                print("SNO lardasin!!")
+                sayMessage="SAYING: SNO ,REGISTER FIRST"
+                self.threadQueue.put((None,None,sayMessage))
+                #return 1
+             else:
+                 sayMessage="SAYING: SOK"
+                 #buradan direkt send'lemiyoruz, threadQueue'ya ekliyoruz:
+                 self.threadQueue.put((None,None,sayMessage))
+                 sayMessage=data[4:]
+                 print sayMessage
+                 #threadQueue'nun put methodu'yla tum fihrist'i dolasip hepsine sayMessag'i iletmek:
+                 for key in self.fihrist.keys():
+                    self.fihrist[key].put((None,self.nickname,sayMessage))
+                 return 0
+                 print("end of SAY")
         elif data[0:3] == "MSG":
             rawData = data[4:].split(':')
             nicknameRcver=rawData[0]
@@ -135,7 +149,7 @@ def main():
     global queueLock
     global fihrist
     logQueue = Queue.Queue()
-    port=59998
+    port=59997
     threadCounter=0
     threads=[]
     s=socket.socket()
