@@ -2,6 +2,14 @@ __author__ = 'cemcelebi'
 import threading
 import Queue
 import socket
+import random
+import time
+
+global CONNECT_POINT_LIST
+global clients
+clients={}
+global UPDATE_INTERVAL
+UPDATE_INTERVAL=7
 class sendThread (threading.Thread):
     def __init__(self, name, cSocket, address, threadQueue, logQueue ):
         threading.Thread.__init__(self)
@@ -17,7 +25,26 @@ class sendThread (threading.Thread):
             queue_message = self.tQueue.get(True)
             message_to_send = "CPL " + queue_message[1]+" "+str(queue_message[2])
             self.cSocket.sendall(message_to_send)
-           
+
+
+class randSend(threading.Thread):
+	 def __init__(self):
+            threading.Thread.__init__(self)
+
+	 def run(self):
+            global CONNECT_POINT_LIST
+            print("RAND'A GIRDIN!!?!?!?!?!")
+            while True:
+                toSend=""
+                for keys in CONNECT_POINT_LIST.keys():
+                    temp =[keys]
+                    toSend=toSend+str(temp[0][0])+"/"+str(temp[0][1])+" "
+                message_to_send="CPL "+str(toSend)
+                for key in clients:
+				    if clients[key]=="Active":
+                                        key.send(message_to_send)
+                time.sleep(UPDATE_INTERVAL)
+
 class recvThread (threading.Thread):
     def __init__(self, name, cSocket, address, threadQueue,logQueue):
         threading.Thread.__init__(self)
@@ -68,7 +95,7 @@ class recvThread (threading.Thread):
             retVal=self.parser(data)
             if retVal:
                 print("retval'in icindeyim \n")
-
+                return
 """
 -*-KULLANILACAK MUTLAKA:
     data="USR 192.168.2.117/54487"
@@ -93,20 +120,29 @@ def main():
     #while True'ya eklenecek
 
     s.listen(5)
+    randSendd=randSend()
+    randSendd.daemon=True
+    randSendd.start()
     while True:
         print("connection bekleniyor \n")
+
+
+
         c,addr=s.accept()
         print("connection geldi \n")
         threadQueue = Queue.Queue()
         threadWrite=sendThread("WriterThread",c,addr,threadQueue,logQueue)
         threadWrite.daemon=True
-
+        clients[c] = "Active"
         #threads.append(thread)
         #threadCounter+=1
         threadRead=recvThread("Reader Thread",c,addr,threadQueue,logQueue)
         threadRead.daemon=True
+
+
         threadRead.start()
         threadWrite.start()
+
         #threads.append(thread)
         #threadCounter+=1
 if __name__ == '__main__':
