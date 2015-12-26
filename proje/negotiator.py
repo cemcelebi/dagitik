@@ -52,7 +52,7 @@ class NegServerThread (threading.Thread):
                 tSock.close()
             except:
                 print("THAT HAS NOT GONE WELL!")
-            if data[0:5]=="SALUT"
+            if (data[0:5]=="SALUT P"):
                 connectionType=data[6:]
                 self.tLock.acquire()
                 self.CONNECTION_POINT_LIST.append([ip,port,"00:00",connectionType,"W"])
@@ -63,7 +63,10 @@ class NegServerThread (threading.Thread):
         print("peerConnectionTester Thread ended without EXCEPTION!")
     def NegServerParser(self,data,ip,port):
         if (data[0:5]=="HELLO"):
-            self.cSocket.send("SALUT")
+            self.cSocket.send("SALUT N")
+            return
+        if (data[0:5] == "CLOSE"):
+            self.cSocket.send("BUBYE")
         if (data[0:5]=="REGME"):
             dataSplitted=data.split(":")
             dataSplitted[0]=dataSplitted[0].strip("REGME ")
@@ -82,13 +85,40 @@ class NegServerThread (threading.Thread):
             self.peerConnectionTester()
         if (data[0:5]=="GETNL"):
             nlsize=data[6:]
-            self.tQueue.put("NLIST BEGIN")
+            cplToSend=""
+            self.cSocket.send("NLIST BEGIN")
+            for i in range(0,nlsize):
+                for j in range(0,4):
+                     cplToSend+=self.CONNECTION_POINT_LIST[i][j]
+                     cplToSend+=":"
+                cplToSend+="\n"
+            self.cSocket.send("NLIST END")
+    def run(self):
+        print "Starting NegServerThread"
+        while True:
+            data = self.cSocket.recv(1024)
+            self.serverParser(data)
 
 
+def main():
+    tLock=threading.Lock()
+    tQueue=Queue.Queue()
+    CONNECTION_POINT_LIST=[]
+    host="127.0.0.1"
+    port=59999
+    sock = socket.socket()
+    sock.bind((host, port))
+    sock.listen(5)
+    tc=1
+    print("NegServerThread baslatiliyor")
+    while True:
+        print("connection bekleniyor..")
+        c, addr=sock.accept()
+        serverThread=NegServerThread("NegServerThread"+tc,CONNECTION_POINT_LIST,c,tQueue,tLock)
+        serverThread.setDaemon(True)
+        serverThread.start()
+        tc=tc+1
 
-
-
-
-
-
+if __name__ == '__main__':
+    main()
 
