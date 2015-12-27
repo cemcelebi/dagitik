@@ -55,6 +55,7 @@ class NegServerThread (threading.Thread):
             if (data[0:5]=="SALUT P"):
                 connectionType=data[6:]
                 self.tLock.acquire()
+                #zamani bir sekilde alip buradaki 00:00 yerine koymak gerek.
                 self.CONNECTION_POINT_LIST.append([ip,port,"00:00",connectionType,"W"])
                 self.tLock.release()
             if data[0:5]=="BUBYE":
