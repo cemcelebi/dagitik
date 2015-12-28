@@ -38,7 +38,7 @@ class NegServerThread (threading.Thread):
             return True
         else:
             return False
-    def peerConnectionTester(self):
+    def ConnectionTester(self):
         while True:
             toGet=self.tQueue.get()
             ip=toGet[0]
@@ -46,12 +46,12 @@ class NegServerThread (threading.Thread):
             tSock=socket.socket()
             tSock.connect(ip,port)
             tSock.send("HELLO")
-            data=tSock(1024)
+            data=tSock.recv(1024)
             tSock.send("CLOSE")
             try:
                 tSock.close()
             except:
-                print("THAT HAS NOT GONE WELL!")
+                print("THAT HAS NOT GONE WELL! couldn't close connection")
             if (data[0:5]=="SALUT P"):
                 connectionType=data[6:]
                 self.tLock.acquire()
@@ -59,11 +59,11 @@ class NegServerThread (threading.Thread):
                 self.CONNECTION_POINT_LIST.append([ip,port,"00:00",connectionType,"W"])
                 self.tLock.release()
             if data[0:5]=="BUBYE":
-                print("CLOSING peerConnectionTester Thread!")
+                print("CLOSING ConnectionTester Thread!")
                 break
-        print("peerConnectionTester Thread ended without EXCEPTION!")
+        print("ConnectionTester Thread ended without EXCEPTION!")
     def NegServerParser(self,data,ip,port):
-        if (data[0:5]=="HELLO"):
+        if (data[0:5]=="SALUT"):
             self.cSocket.send("SALUT N")
             return
         if (data[0:5] == "CLOSE"):
@@ -82,8 +82,8 @@ class NegServerThread (threading.Thread):
             self.cSocket.send("REGWA") #aradigin ip listede yok, REGWA at ve HELLO prosedurunu baslat.
             toSend=(ip,port)
             self.tQueue.put(toSend)
-            print("NegServerParser ending, starting peerConnectionTester")
-            self.peerConnectionTester()
+            print("NegServerParser ending, starting ConnectionTester")
+            self.ConnectionTester()
         if (data[0:5]=="GETNL"):
             nlsize=data[6:]
             cplToSend=""

@@ -23,6 +23,66 @@ def gray2rgb(gray):
 """
 *-*-*-*-*-*-*-*-*-*-*-*-*-*- ///// *-*-*-*-*-*-*-*-*-*-*-*-*-*-
 """
+class ConnectionTester(threading.Thread):
+    def __init__(self,name,CONNECTION_POINT_LIST,tLock,tQueue):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.CONNECTION_POINT_LIST=CONNECTION_POINT_LIST
+        self.tLock=tLock
+        self.tQueue=tQueue
+    def incomingTesterParser(self,data,ip,port):
+        print("this is incomingTesterParser beginning")
+        if (data[0:5]=="SALUT"):
+            self.tLock.acquire()
+            self.CONNECTION_POINT_LIST.append([ip,port,"00:00",data[6],"S"])
+            self.tLock.release()
+            return
+        if data[0:5] == "HELLO":
+            self.cSocket.send("SALUT P")
+            return
+        if (data[0:5]=="REGME"):
+            dataSplitted=data.split(":")
+            dataSplitted[0]=dataSplitted[0].strip("REGME ")
+            ip=dataSplitted[0]
+            port=dataSplitted[1]
+            self.tLock.acquire()
+            nowTime=time.time()
+            if(self.isPresentInCPL(ip,port)==True):
+                self.cSocket.send("REGOK"+str(nowTime))
+                return #aradigin ip zaten listede var, if'i terket.
+            self.tLock.release()
+            self.cSocket.send("REGWA") #aradigin ip listede yok, REGWA at ve HELLO prosedurunu baslat.
+            toSend=(ip,port)
+            self.tQueue.put(toSend)
+            print("NegServerParser ending")
+
+        if (data[0:5]=="GETNL"):
+            nlsize=data[6:]
+            cplToSend=""
+            self.cSocket.send("NLIST BEGIN")
+            for i in range(0,nlsize):
+                for j in range(0,4):
+                     cplToSend+=self.CONNECTION_POINT_LIST[i][j]
+                     cplToSend+=":"
+                cplToSend+="\n"
+            self.cSocket.send("NLIST END")
+        if (data[0:5] == "CLOSE"):
+            self.cSocket.send("BUBYE")
+            pass
+    def run(self):
+         while True:
+            toGet=self.tQueue.get()
+            ip=toGet[0]
+            port=toGet[1]
+            tSock=socket.socket()
+            tSock.connect(ip,port)
+            tSock.send("HELLO")
+            try:
+                data=tSock.recv(1024)
+            except:
+                print("Couldn't recv anything from ConnectionTester or sthing went wrong")
+            tSock.send("CLOSE")
+
 
 
 
